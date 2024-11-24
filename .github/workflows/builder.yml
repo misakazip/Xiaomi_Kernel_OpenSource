@@ -2,8 +2,6 @@ name: Android Kernel Builder
 
 on:
     push:
-        branches:
-            - vili
 
 jobs:
     build:
@@ -17,6 +15,17 @@ jobs:
               run: |
                   sudo apt-get update
                   sudo apt-get install -y git build-essential libncurses5-dev bison flex libssl-dev libelf-dev bc python3 python3-dev make gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi
+
+            - name: Clone clang (prebuilt)
+              run: |
+                  git clone --depth=1 https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 -b android11-mainline-release
+                  export PATH=$(pwd)/linux-x86/clang-r377782c/bin:$PATH
+
+            - name: Clone gcc (prebuilt)
+              run: |
+                  git clone --depth=1 https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 -b android11-mainline-release
+                  git clone --depth=1 https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9 -b android11-mainline-release
+                  export PATH=$(pwd)/aarch64-linux-android-4.9/bin:$(pwd)/arm-linux-androideabi-4.9/bin:$PATH
 
             - name: Build kernel
               run: |
