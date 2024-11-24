@@ -1,0 +1,70 @@
+name: Android Kernel Builder
+
+on:
+    push:
+        branches:
+            - vili
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Install dependencies
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y git build-essential libncurses5-dev bison flex libssl-dev libelf-dev bc python3 python3-dev make gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi
+
+            - name: Build kernel
+              run: |
+                  export ARCH=arm64
+                  export SUBARCH=arm64
+                  export CROSS_COMPILE=aarch64-linux-gnu-
+                  make O=out ARCH=arm64 arch/arm64/gki_defconfig
+                  make -j$(nproc --all) O=out ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu-
+
+            - name: Upload kernel (Image)
+              uses: actions/upload-artifact@v4
+              with:
+                  if-no-files-found: ignore
+                  name: Image
+                  path: out/arch/arm64/boot/Image
+
+            - name: Upload Kernel (Image.gz)
+              uses: actions/upload-artifact@v4
+              with:
+                  if-no-files-found: ignore
+                  name: Image.gz
+                  path: out/arch/arm64/boot/Image.gz
+
+            - name: Upload Kernel (Image.gz-dtb)
+              uses: actions/upload-artifact@v4
+              with:
+                  if-no-files-found: ignore
+                  name: Image.gz-dtb
+                  path: out/arch/arm64/boot/Image.gz-dtb
+
+            - name: Upload Kernel (dtbo.img)
+              uses: actions/upload-artifact@v4
+              with:
+                  if-no-files-found: ignore
+                  name: dtbo.img
+                  path: out/arch/arm64/boot/dtbo.img
+
+            - name: Upload Kernel (dtb)
+              uses: actions/upload-artifact@v4
+              with:
+                  if-no-files-found: ignore
+                  name: dtb
+                  path: out/arch/arm64/boot/dtb
+
+            - name: Upload output
+              uses: actions/upload-artifact@v4
+              with:
+                  if-no-files-found: ignore
+                  name: kernel-output
+                  path: out/
+ 
