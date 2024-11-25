@@ -1,0 +1,126 @@
+name: Android Kernel Builder
+
+on:
+    push:
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            # Restore apt dependencies cache
+            - name: Restore apt dependencies cache
+              uses: actions/cache@v4
+              with:
+                  path: /var/cache/apt/archives
+                  key: ${{ runner.os }}-apt-cache
+                  restore-keys: |
+                      ${{ runner.os }}-apt-cache
+
+            - name: Install dependencies
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y git build-essential libncurses5-dev bison flex libssl-dev libelf-dev bc python3 python3-dev make \
+                      liblz4-tool make optipng device-tree-compiler libc6-dev-i386 lib32ncurses5-dev libx11-dev lib32z-dev libgl1-mesa-dev xsltproc pwgen libswitch-perl policycoreutils \
+                      minicom libxml-sax-base-perl libxml-simple-perl libc6-dev-i386 lib32ncurses5-dev libx11-dev lib32z-dev libgl1-mesa-dev xsltproc bison gperf zlib1g-dev automake
+
+            # Restore clang cache
+            - name: Restore clang cache
+              uses: actions/cache@v4
+              id: cache-clang
+              with:
+                  path: linux-x86
+                  key: ${{ runner.os }}-clang-cache
+                  restore-keys: |
+                      ${{ runner.os }}-clang-cache
+
+            - name: Clone clang (prebuilt)
+              if: steps.cache-clang.outputs.cache-hit != 'true'
+              run: |
+                  [ -d "linux-x86" ] && rm -rf linux-x86
+                  git clone --depth=1 https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 -b android11-mainline-release
+
+            # Restore gcc cache
+            - name: Restore gcc cache
+              uses: actions/cache@v4
+              id: cache-gcc
+              with:
+                  path: |
+                      aarch64-linux-android-4.9
+                      arm-linux-androideabi-4.9
+                  key: ${{ runner.os }}-gcc-cache
+                  restore-keys: |
+                      ${{ runner.os }}-gcc-cache
+
+            - name: Clone gcc (prebuilt)
+              if: steps.cache-gcc.outputs.cache-hit != 'true'
+              run: |
+                  [ -d "aarch64-linux-android-4.9" ] && rm -rf aarch64-linux-android-4.9
+                  [ -d "arm-linux-androideabi-4.9" ] && rm -rf arm-linux-androideabi-4.9
+                  git clone --depth=1 https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 -b android11-mainline-release
+                  git clone --depth=1 https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9 -b android11-mainline-release
+
+            - name: Build kernel
+              run: |
+                  export ARCH=arm64
+                  export SUBARCH=arm64
+                  export CROSS_COMPILE=aarch64-linux-gnu-
+                  export PATH=$PWD/aarch64-linux-android-4.9/bin:$PWD/arm-linux-androideabi-4.9/bin:$PATH
+                  make O=out CC=clang ARCH=arm64 CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-androidkernel- CROSS_COMPILE_ARM32=arm-linux-androideabi- gki_defconfig
+                  make -j$(nproc --all) O=out CC=clang ARCH=arm64 CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-androidkernel- CROSS_COMPILE_ARM32=arm-linux-androideabi-
+
+            # Save apt dependencies cache
+            - name: Save apt dependencies cache
+              if: always()
+              uses: actions/cache@v4
+              with:
+                  path: /var/cache/apt/archives
+                  key: ${{ runner.os }}-apt-cache
+
+            # Save clang cache
+            - name: Save clang cache
+              if: always()
+              uses: actions/cache@v4
+              with:
+                  path: linux-x86
+                  key: ${{ runner.os }}-clang-cache
+
+            # Save gcc cache
+            - name: Save gcc cache
+              if: always()
+              uses: actions/cache@v4
+              with:
+                  path: |
+                      aarch64-linux-android-4.9
+                      arm-linux-androideabi-4.9
+                  key: ${{ runner.os }}-gcc-cache
+
+            - name: Upload kernel (Image)
+              uses: actions/upload-artifact@v4
+              with:
+                  if-no-files-found: ignore
+                  name: Image
+                  path: out/arch/arm64/boot/Image
+
+            - name: Upload Kernel (Image.gz)
+              uses: actions/upload-artifact@v4
+              with:
+                  if-no-files-found: ignore
+                  name: Image.gz
+                  path: out/arch/arm64/boot/Image.gz
+
+            - name: Upload Kernel (dts)
+              uses: actions/upload-artifact@v4
+              with:
+                  if-no-files-found: ignore
+                  name: dts
+                  path: out/arch/arm64/boot/dts
+            - name: Upload kernel artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  if-no-files-found: ignore
+                  name: kernel-output
+                  path: out/
