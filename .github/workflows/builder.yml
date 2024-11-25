@@ -93,6 +93,41 @@ jobs:
                       arm-linux-androideabi-4.9
                   key: ${{ runner.os }}-gcc-cache
 
+            - name: Upload kernel (Image)
+              uses: actions/upload-artifact@v4
+              with:
+                  if-no-files-found: ignore
+                  name: Image
+                  path: out/arch/arm64/boot/Image
+
+            - name: Upload Kernel (Image.gz)
+              uses: actions/upload-artifact@v4
+              with:
+                  if-no-files-found: ignore
+                  name: Image.gz
+                  path: out/arch/arm64/boot/Image.gz
+
+            - name: Upload Kernel (Image.gz-dtb)
+              uses: actions/upload-artifact@v4
+              with:
+                  if-no-files-found: ignore
+                  name: Image.gz-dtb
+                  path: out/arch/arm64/boot/Image.gz-dtb
+
+            - name: Upload Kernel (dtbo.img)
+              uses: actions/upload-artifact@v4
+              with:
+                  if-no-files-found: ignore
+                  name: dtbo.img
+                  path: out/arch/arm64/boot/dtbo.img
+
+            - name: Upload Kernel (dtb)
+              uses: actions/upload-artifact@v4
+              with:
+                  if-no-files-found: ignore
+                  name: dtb
+                  path: out/arch/arm64/boot/dtb
+
             - name: Upload kernel artifacts
               uses: actions/upload-artifact@v4
               with:
