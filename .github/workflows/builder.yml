@@ -149,13 +149,8 @@ jobs:
                   name: Image.gz
                   path: AnyKernel3/Image.gz
 
-            - name: Create AnyKernel3 Zip
-              run: |
-                  cd AnyKernel3
-                  zip -r AnyKernel3.zip *
-
             - name: Upload AnyKernel3 Zip
               uses: actions/upload-artifact@v4
               with:
                   name: AnyKernel3
-                  path: AnyKernel3/AnyKernel3.zip
+                  path: AnyKernel3/
