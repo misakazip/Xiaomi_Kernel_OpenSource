@@ -40,7 +40,6 @@ jobs:
               if: steps.cache.outputs.cache-hit != 'true'
               run: |
                   git clone --depth=1 https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 -b android11-mainline-release
-                  echo PATH=$(pwd)/linux-x86/clang-r377782c/bin:$(echo $PATH) >> $GITHUB_ENV
 
             # Restore gcc cache
             - name: Restore gcc cache
@@ -58,13 +57,13 @@ jobs:
               run: |
                   git clone --depth=1 https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 -b android11-mainline-release
                   git clone --depth=1 https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9 -b android11-mainline-release
-                  echo PATH=$(pwd)/aarch64-linux-android-4.9/bin:$(pwd)/arm-linux-androideabi-4.9/bin:$(echo $PATH) >> $GITHUB_ENV
 
             - name: Build kernel
               run: |
                   export ARCH=arm64
                   export SUBARCH=arm64
                   export CROSS_COMPILE=aarch64-linux-gnu-
+                  export PATH=$PWD/android11-mainline-release/bin:$PWD/aarch64-linux-android-4.9/bin:$PWD/arm-linux-androideabi-4.9/bin:$PATH
                   make O=out CC=clang ARCH=arm64 CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-androidkernel- CROSS_COMPILE_ARM32=arm-linux-androideabi- gki_defconfig
                   make -j$(nproc --all) O=out CC=clang ARCH=arm64 CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-androidkernel- CROSS_COMPILE_ARM32=arm-linux-androideabi-
 
