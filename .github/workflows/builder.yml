@@ -14,7 +14,7 @@ jobs:
             - name: Install dependencies
               run: |
                   sudo apt-get update
-                  sudo apt-get install -y git build-essential libncurses5-dev bison flex libssl-dev libelf-dev bc python3 python3-dev make gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi \
+                  sudo apt-get install -y git build-essential libncurses5-dev bison flex libssl-dev libelf-dev bc python3 python3-dev make \
                       liblz4-tool make optipng device-tree-compiler libc6-dev-i386 lib32ncurses5-dev libx11-dev lib32z-dev libgl1-mesa-dev xsltproc pwgen libswitch-perl policycoreutils \
                       minicom libxml-sax-base-perl libxml-simple-perl libc6-dev-i386 lib32ncurses5-dev libx11-dev lib32z-dev libgl1-mesa-dev xsltproc bison gperf zlib1g-dev automake
 
@@ -34,7 +34,7 @@ jobs:
                   export ARCH=arm64
                   export SUBARCH=arm64
                   export CROSS_COMPILE=aarch64-linux-gnu-
-                  make O=out ARCH=arm64 CC="clang" CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-androidkernel- CROSS_COMPILE_ARM32=arm-linux-androideabi- LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump READELF=llvm-readelf OBJSIZE=llvm-size STRIP=llvm-strip LDGOLD=aarch64-linux-gnu-ld.gold LLVM_AR=llvm-ar LLVM_DIS=llvm-dis CONFIG_THINLTO= gki_defconfig
+                  make O=out ARCH=arm64 CC="clang" CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-androidkernel- CROSS_COMPILE_ARM32=arm-linux-androideabi- LD=lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump READELF=llvm-readelf OBJSIZE=llvm-size STRIP=llvm-strip LDGOLD=aarch64-linux-gnu-ld.gold LLVM_AR=llvm-ar LLVM_DIS=llvm-dis CONFIG_THINLTO= gki_defconfig
                   make -j$(nproc --all) O=out ARCH=arm64 CC="clang" CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-androidkernel- CROSS_COMPILE_ARM32=arm-linux-androideabi- LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump READELF=llvm-readelf OBJSIZE=llvm-size STRIP=llvm-strip LDGOLD=aarch64-linux-gnu-ld.gold LLVM_AR=llvm-ar LLVM_DIS=llvm-dis CONFIG_THINLTO=
 
             - name: Upload kernel (Image)
