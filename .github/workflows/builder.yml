@@ -125,3 +125,37 @@ jobs:
                   if-no-files-found: ignore
                   name: dts
                   path: out/arch/arm64/boot/dts
+    
+    AnyKernel3:
+        runs-on: ubuntu-latest
+        needs: build
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with: 
+                repository: 'misakazip/AnyKernel3'
+                path: 'AnyKernel3'
+                persist-credentials: 'false'
+
+            - name: Download Image
+              uses: actions/download-artifact@v4
+              with:
+                  name: Image
+                  path: AnyKernel3/Image
+            
+            - name: Download Image.gz
+              uses: actions/download-artifact@v4
+              with:
+                  name: Image.gz
+                  path: AnyKernel3/Image.gz
+
+            - name: Create AnyKernel3 Zip
+              run: |
+                  cd AnyKernel3
+                  zip -r AnyKernel3.zip *
+
+            - name: Upload AnyKernel3 Zip
+              uses: actions/upload-artifact@v4
+              with:
+                  name: AnyKernel3
+                  path: AnyKernel3/AnyKernel3.zip
