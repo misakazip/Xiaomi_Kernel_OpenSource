@@ -1,4 +1,3 @@
-
 name: Android Kernel Builder
 
 on:
@@ -12,6 +11,15 @@ jobs:
             - name: Checkout repository
               uses: actions/checkout@v4
 
+            # Restore apt dependencies cache
+            - name: Restore apt dependencies cache
+              uses: actions/cache@v4
+              with:
+                  path: /var/cache/apt/archives
+                  key: ${{ runner.os }}-apt-cache
+                  restore-keys: |
+                      ${{ runner.os }}-apt-cache
+
             - name: Install dependencies
               run: |
                   sudo apt-get update
@@ -19,12 +27,34 @@ jobs:
                       liblz4-tool make optipng device-tree-compiler libc6-dev-i386 lib32ncurses5-dev libx11-dev lib32z-dev libgl1-mesa-dev xsltproc pwgen libswitch-perl policycoreutils \
                       minicom libxml-sax-base-perl libxml-simple-perl libc6-dev-i386 lib32ncurses5-dev libx11-dev lib32z-dev libgl1-mesa-dev xsltproc bison gperf zlib1g-dev automake
 
+            # Restore clang cache
+            - name: Restore clang cache
+              uses: actions/cache@v4
+              with:
+                  path: linux-x86
+                  key: ${{ runner.os }}-clang-cache
+                  restore-keys: |
+                      ${{ runner.os }}-clang-cache
+
             - name: Clone clang (prebuilt)
+              if: steps.cache.outputs.cache-hit != 'true'
               run: |
                   git clone --depth=1 https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 -b android11-mainline-release
                   echo PATH=$(pwd)/linux-x86/clang-r377782c/bin:$(echo $PATH) >> $GITHUB_ENV
 
+            # Restore gcc cache
+            - name: Restore gcc cache
+              uses: actions/cache@v4
+              with:
+                  path: |
+                      aarch64-linux-android-4.9
+                      arm-linux-androideabi-4.9
+                  key: ${{ runner.os }}-gcc-cache
+                  restore-keys: |
+                      ${{ runner.os }}-gcc-cache
+
             - name: Clone gcc (prebuilt)
+              if: steps.cache.outputs.cache-hit != 'true'
               run: |
                   git clone --depth=1 https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 -b android11-mainline-release
                   git clone --depth=1 https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9 -b android11-mainline-release
@@ -35,48 +65,38 @@ jobs:
                   export ARCH=arm64
                   export SUBARCH=arm64
                   export CROSS_COMPILE=aarch64-linux-gnu-
-                  make O=out ARCH=arm64 CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-androidkernel- CROSS_COMPILE_ARM32=arm-linux-androideabi- gki_defconfig
-                  make -j$(nproc --all) O=out ARCH=arm64 CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-androidkernel- CROSS_COMPILE_ARM32=arm-linux-androideabi-
+                  make O=out CC=clang ARCH=arm64 CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-androidkernel- CROSS_COMPILE_ARM32=arm-linux-androideabi- gki_defconfig
+                  make -j$(nproc --all) O=out CC=clang ARCH=arm64 CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-androidkernel- CROSS_COMPILE_ARM32=arm-linux-androideabi-
 
-            - name: Upload kernel (Image)
-              uses: actions/upload-artifact@v4
+            # Save apt dependencies cache
+            - name: Save apt dependencies cache
+              if: always()
+              uses: actions/cache@v4
               with:
-                  if-no-files-found: ignore
-                  name: Image
-                  path: out/arch/arm64/boot/Image
+                  path: /var/cache/apt/archives
+                  key: ${{ runner.os }}-apt-cache
 
-            - name: Upload Kernel (Image.gz)
-              uses: actions/upload-artifact@v4
+            # Save clang cache
+            - name: Save clang cache
+              if: always()
+              uses: actions/cache@v4
               with:
-                  if-no-files-found: ignore
-                  name: Image.gz
-                  path: out/arch/arm64/boot/Image.gz
+                  path: linux-x86
+                  key: ${{ runner.os }}-clang-cache
 
-            - name: Upload Kernel (Image.gz-dtb)
-              uses: actions/upload-artifact@v4
+            # Save gcc cache
+            - name: Save gcc cache
+              if: always()
+              uses: actions/cache@v4
               with:
-                  if-no-files-found: ignore
-                  name: Image.gz-dtb
-                  path: out/arch/arm64/boot/Image.gz-dtb
+                  path: |
+                      aarch64-linux-android-4.9
+                      arm-linux-androideabi-4.9
+                  key: ${{ runner.os }}-gcc-cache
 
-            - name: Upload Kernel (dtbo.img)
-              uses: actions/upload-artifact@v4
-              with:
-                  if-no-files-found: ignore
-                  name: dtbo.img
-                  path: out/arch/arm64/boot/dtbo.img
-
-            - name: Upload Kernel (dtb)
-              uses: actions/upload-artifact@v4
-              with:
-                  if-no-files-found: ignore
-                  name: dtb
-                  path: out/arch/arm64/boot/dtb
-
-            - name: Upload output
+            - name: Upload kernel artifacts
               uses: actions/upload-artifact@v4
               with:
                   if-no-files-found: ignore
                   name: kernel-output
                   path: out/
- 
