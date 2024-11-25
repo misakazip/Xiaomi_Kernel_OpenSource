@@ -31,13 +31,14 @@ jobs:
             - name: Restore clang cache
               uses: actions/cache@v4
               with:
+                  id: cache-clang
                   path: linux-x86
                   key: ${{ runner.os }}-clang-cache
                   restore-keys: |
                       ${{ runner.os }}-clang-cache
 
             - name: Clone clang (prebuilt)
-              if: steps.cache.outputs.cache-hit != 'true'
+              if: steps.cache-clang.outputs.cache-hit != 'true'
               run: |
                   git clone --depth=1 https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 -b android11-mainline-release
 
@@ -45,6 +46,7 @@ jobs:
             - name: Restore gcc cache
               uses: actions/cache@v4
               with:
+                  id: cache-gcc
                   path: |
                       aarch64-linux-android-4.9
                       arm-linux-androideabi-4.9
@@ -53,7 +55,7 @@ jobs:
                       ${{ runner.os }}-gcc-cache
 
             - name: Clone gcc (prebuilt)
-              if: steps.cache.outputs.cache-hit != 'true'
+              if: steps.cache-gcc.outputs.cache-hit != 'true'
               run: |
                   git clone --depth=1 https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 -b android11-mainline-release
                   git clone --depth=1 https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9 -b android11-mainline-release
