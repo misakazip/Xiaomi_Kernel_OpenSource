@@ -21,13 +21,13 @@ jobs:
             - name: Clone clang (prebuilt)
               run: |
                   git clone --depth=1 https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 -b android11-mainline-release
-                  export PATH=$(pwd)/linux-x86/clang-r377782c/bin:$PATH
+                  echo PATH=$(pwd)/linux-x86/clang-r377782c/bin:$(echo $PATH) >> $GITHUB_ENV
 
             - name: Clone gcc (prebuilt)
               run: |
                   git clone --depth=1 https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 -b android11-mainline-release
                   git clone --depth=1 https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9 -b android11-mainline-release
-                  export PATH=$(pwd)/aarch64-linux-android-4.9/bin:$(pwd)/arm-linux-androideabi-4.9/bin:$PATH
+                  echo PATH=$(pwd)/aarch64-linux-android-4.9/bin:$(pwd)/arm-linux-androideabi-4.9/bin:$(echo $PATH) >> $GITHUB_ENV
 
             - name: Build kernel
               run: |
