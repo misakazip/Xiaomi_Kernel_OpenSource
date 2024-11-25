@@ -1,7 +1,14 @@
 name: Android Kernel Builder
 
 on:
-    push:
+  push:
+    paths-ignore:
+    - '**.md'
+    - 'COPYING'
+    - 'LICENSES/**'
+    - 'Documentation/**'
+    - 'README'
+    
 
 jobs:
     build:
@@ -10,6 +17,8 @@ jobs:
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
+              with:
+                submodules: 'recursive'
 
             # Restore apt dependencies cache
             - name: Restore apt dependencies cache
