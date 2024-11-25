@@ -18,15 +18,6 @@ jobs:
             - name: Checkout repository
               uses: actions/checkout@v4
 
-            # Restore apt dependencies cache
-            - name: Restore apt dependencies cache
-              uses: actions/cache@v4
-              with:
-                  path: /var/cache/apt/archives
-                  key: ${{ runner.os }}-apt-cache
-                  restore-keys: |
-                      ${{ runner.os }}-apt-cache
-
             - name: Install dependencies
               run: |
                   sudo apt-get update
@@ -34,7 +25,6 @@ jobs:
                       liblz4-tool make optipng device-tree-compiler libc6-dev-i386 lib32ncurses5-dev libx11-dev lib32z-dev libgl1-mesa-dev xsltproc pwgen libswitch-perl policycoreutils \
                       minicom libxml-sax-base-perl libxml-simple-perl libc6-dev-i386 lib32ncurses5-dev libx11-dev lib32z-dev libgl1-mesa-dev xsltproc bison gperf zlib1g-dev automake
 
-            # Restore clang cache
             - name: Restore clang cache
               uses: actions/cache@v4
               id: cache-clang
@@ -47,10 +37,8 @@ jobs:
             - name: Clone clang (prebuilt)
               if: steps.cache-clang.outputs.cache-hit != 'true'
               run: |
-                  [ -d "linux-x86" ] && rm -rf linux-x86
                   git clone --depth=1 https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 -b android11-mainline-release
 
-            # Restore gcc cache
             - name: Restore gcc cache
               uses: actions/cache@v4
               id: cache-gcc
@@ -79,15 +67,6 @@ jobs:
                   make O=out CC=clang ARCH=arm64 CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-androidkernel- CROSS_COMPILE_ARM32=arm-linux-androideabi- gki_defconfig
                   make -j$(nproc --all) O=out CC=clang ARCH=arm64 CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-androidkernel- CROSS_COMPILE_ARM32=arm-linux-androideabi-
 
-            # Save apt dependencies cache
-            - name: Save apt dependencies cache
-              if: always()
-              uses: actions/cache@v4
-              with:
-                  path: /var/cache/apt/archives
-                  key: ${{ runner.os }}-apt-cache
-
-            # Save clang cache
             - name: Save clang cache
               if: always()
               uses: actions/cache@v4
@@ -95,7 +74,6 @@ jobs:
                   path: linux-x86
                   key: ${{ runner.os }}-clang-cache
 
-            # Save gcc cache
             - name: Save gcc cache
               if: always()
               uses: actions/cache@v4
