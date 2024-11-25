@@ -2,6 +2,13 @@ name: Android Kernel Builder
 
 on:
     push:
+      paths-ignore:
+      - '**.md'
+      - 'COPYING'
+      - 'LICENSES/**'
+      - 'Documentation/**'
+      - 'README'
+    workflow_dispatch:
 
 jobs:
     build:
@@ -118,9 +125,3 @@ jobs:
                   if-no-files-found: ignore
                   name: dts
                   path: out/arch/arm64/boot/dts
-            - name: Upload kernel artifacts
-              uses: actions/upload-artifact@v4
-              with:
-                  if-no-files-found: ignore
-                  name: kernel-output
-                  path: out/
